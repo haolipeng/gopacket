@@ -125,6 +125,34 @@ type InterAreaPrefixLSA struct {
 	AddressPrefix []byte
 }
 
+/*
+			0                   1                   2                   3
+	        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |            LS age             |     Options   |    3 or 4     |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |                        Link State ID                          |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |                     Advertising Router                        |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |                     LS sequence number                        |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |         LS checksum           |             length            |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |                         Network Mask                          |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |      0        |                  metric                       |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |     TOS       |                TOS  metric                    |
+	       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	       |                              ...                              |
+*/
+type SummaryLSAV2 struct {
+	NetworkMask uint32
+	Tos         uint8
+	Metric      uint32
+}
+
 // NetworkLSA is the struct from RFC 5340  A.4.4.
 type NetworkLSA struct {
 	Options        uint32
@@ -237,7 +265,7 @@ type OSPF struct {
 	Content      interface{}
 }
 
-//OSPFv2 extend the OSPF head with version 2 specific fields
+// OSPFv2 extend the OSPF head with version 2 specific fields
 type OSPFv2 struct {
 	BaseLayer
 	OSPF
@@ -317,6 +345,17 @@ func extractLSAInformation(lstype, lsalength uint16, data []byte) (interface{}, 
 			Flags:   data[20],
 			Links:   links,
 			Routers: routers,
+		}
+	case SummaryLSANetworktypeV2: //Type3 and Type4 LSAs have the same format
+		fallthrough
+	case SummaryLSAASBRtypeV2:
+		network := binary.BigEndian.Uint32(data[20:24])
+		tos := data[24]
+		metric := binary.BigEndian.Uint32(data[24:28]) & 0x00FFFFFF
+		content = SummaryLSAV2{
+			NetworkMask: network,
+			Tos:         tos,
+			Metric:      metric,
 		}
 	case NSSALSAtypeV2:
 		fallthrough
