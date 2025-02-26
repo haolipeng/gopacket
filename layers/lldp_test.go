@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/google/gopacket"
+	"github.com/haolipeng/gopacket"
 )
 
 // testPacketLLDP is the packet:

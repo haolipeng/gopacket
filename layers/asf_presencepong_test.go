@@ -10,7 +10,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/google/gopacket"
+	"github.com/haolipeng/gopacket"
 )
 
 func TestASFPresencePongDecodeFromBytes(t *testing.T) {

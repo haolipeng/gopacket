@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/gopacket"
+	"github.com/haolipeng/gopacket"
 )
 
 // SIPVersion defines the different versions of the SIP Protocol
